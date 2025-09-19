@@ -1,0 +1,76 @@
+{
+  "category_distribution": [
+    {
+      "category": "General",
+      "count": 941
+    },
+    {
+      "category": "OBC",
+      "count": 799
+    },
+    {
+      "category": "SC",
+      "count": 378
+    },
+    {
+      "category": "ST",
+      "count": 281
+    }
+  ],
+  "district_type_distribution": [
+    {
+      "district_type": "Aspirational",
+      "count": 268
+    },
+    {
+      "district_type": "Rural",
+      "count": 626
+    },
+    {
+      "district_type": "Urban",
+      "count": 1505
+    }
+  ],
+  "sector_distribution": [
+    {
+      "sector": "Agriculture",
+      "count": 123
+    },
+    {
+      "sector": "Consulting",
+      "count": 314
+    },
+    {
+      "sector": "Education",
+      "count": 289
+    },
+    {
+      "sector": "Finance",
+      "count": 174
+    },
+    {
+      "sector": "Government",
+      "count": 313
+    },
+    {
+      "sector": "Healthcare",
+      "count": 218
+    },
+    {
+      "sector": "Manufacturing",
+      "count": 268
+    },
+    {
+      "sector": "Media",
+      "count": 235
+    },
+    {
+      "sector": "Retail",
+      "count": 300
+    },
+    {
+      "sector": "Technology",
+      "count": 165
+    }
+  ]
+}

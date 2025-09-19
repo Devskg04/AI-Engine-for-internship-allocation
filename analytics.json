@@ -1,0 +1,26 @@
+{
+  "category_distribution": {
+    "OBC": 350,
+    "General": 250,
+    "SC": 150,
+    "ST": 87
+  },
+  "district_type_distribution": {
+    "Urban": 551,
+    "Rural": 218,
+    "Aspirational": 68
+  },
+  "sector_distribution": {
+    "Retail": 122,
+    "Healthcare": 120,
+    "Manufacturing": 111,
+    "Agriculture": 93,
+    "Government": 81,
+    "Media": 76,
+    "Education": 71,
+    "Technology": 57,
+    "Finance": 54,
+    "Consulting": 52
+  },
+  "total_allocated": 837
+}

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internship Allocation Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            display: flex;
+            align-items: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .bot .avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .user .avatar {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .bot .message-content {
+            background: white;
+            border: 1px solid #e1e5e9;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 0;
+            background: transparent;
+            font-size: 16px;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-action {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .quick-action:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 20px;
+            max-width: 70px;
+            margin-left: 50px;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .data-display {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 10px 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8e6cf 0%, #dcedc8 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 90vh;
+                margin: 10px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🎓 Internship Allocation Assistant</h1>
+            <p>ML-powered system for student internship matching</p>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    <p>Welcome to the <span class="highlight">Enhanced ML Internship Allocation System</span>!</p>
+                    <p>I can help you with:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Student registration and profile creation</li>
+                        <li>Personalized internship recommendations</li>
+                        <li>Skill-based matching</li>
+                        <li>Allocation status checking</li>
+                        <li>System insights and analytics</li>
+                    </ul>
+                    <p>How can I assist you today?</p>
+                    
+                    <div class="quick-actions">
+                        <div class="quick-action" onclick="sendQuickMessage('Register as student')">📝 Register Student</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">💡 Get Recommendations</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Check my allocation')">📋 Check Allocation</div>
+                        <div class="quick-action" onclick="sendQuickMessage('System insights')">📊 System Insights</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                <button class="send-button" onclick="sendMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the internship allocation system data
+        const systemData = {
+            fields: [
+                "INFORMATION-TECHNOLOGY", "Engineering", "FINANCE", "HEALTHCARE", 
+                "Management", "BUSINESS-DEVELOPMENT", "Law", "Commerce", "Arts", "Science"
+            ],
+            
+            companies: [
+                {name: "TCS", sector: "Technology", location: "Mumbai", skills: ["Python", "Java", "SQL"], capacity: 5, stipend: 35000},
+                {name: "Infosys", sector: "Technology", location: "Bangalore", skills: ["JavaScript", "React", "Node.js"], capacity: 7, stipend: 38000},
+                {name: "HDFC Bank", sector: "Finance", location: "Mumbai", skills: ["Finance", "Excel", "Analytics"], capacity: 6, stipend: 32000},
+                {name: "Apollo Hospitals", sector: "Healthcare", location: "Chennai", skills: ["Healthcare", "Communication", "Research"], capacity: 4, stipend: 28000},
+                {name: "Deloitte", sector: "Consulting", location: "Gurugram", skills: ["Strategy", "Analytics", "Leadership"], capacity: 5, stipend: 42000}
+            ],
+            
+            registeredStudents: {},
+            allocations: {},
+            
+            skillCategories: {
+                'Programming': ['Python', 'Java', 'JavaScript', 'C++', 'C#'],
+                'Web Development': ['HTML', 'CSS', 'React', 'Angular', 'Node.js'],
+                'Data Science': ['Machine Learning', 'Data Science', 'Python', 'Statistics'],
+                'Business': ['Project Management', 'Leadership', 'Strategy', 'Marketing'],
+                'Design': ['UI/UX', 'Photoshop', 'Illustrator', 'Figma']
+            }
+        };
+
+        let conversationState = {
+            currentFlow: null,
+            userData: {},
+            step: 0
+        };
+
+        function addMessage(content, isUser = false, showActions = false) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const message = document.createElement('div');
+            message.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = isUser ? '👨‍🎓' : '🤖';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = content;
+            
+            message.appendChild(avatar);
+            message.appendChild(messageContent);
+            
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return message;
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typing-indicator').classList.add('show');
+            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typing-indicator').classList.remove('show');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage(message, true);
+            input.value = '';
+            
+            setTimeout(() => {
+                showTypingIndicator();
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    processMessage(message);
+                }, 1000 + Math.random() * 1000);
+            }, 100);
+        }
+
+        function sendQuickMessage(message) {
+            addMessage(message, true);
+            
+            setTimeout(() => {
+                showTypingIndicator();
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    processMessage(message);
+                }, 800);
+            }, 100);
+        }
+
+        function processMessage(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Reset conversation state for new topics
+            if (lowerMessage.includes('register') || lowerMessage.includes('new student')) {
+                startRegistrationFlow();
+            } else if (lowerMessage.includes('recommend') || lowerMessage.includes('suggestion')) {
+                showRecommendations();
+            } else if (lowerMessage.includes('allocation') || lowerMessage.includes('my status')) {
+                checkAllocation();
+            } else if (lowerMessage.includes('insight') || lowerMessage.includes('analytics') || lowerMessage.includes('statistics')) {
+                showSystemInsights();
+            } else if (lowerMessage.includes('skill') && lowerMessage.includes('match')) {
+                showSkillBasedRecommendations();
+            } else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+                showHelp();
+            } else if (conversationState.currentFlow) {
+                handleFlowResponse(message);
+            } else {
+                handleGeneralQuery(message);
+            }
+        }
+
+        function startRegistrationFlow() {
+            conversationState.currentFlow = 'registration';
+            conversationState.step = 0;
+            conversationState.userData = {};
+            
+            const fieldsHtml = systemData.fields.map((field, index) => 
+                `<div class="quick-action" onclick="selectField('${field}')">${index + 1}. ${field}</div>`
+            ).join('');
+            
+            addMessage(`
+                <p><span class="highlight">Student Registration Process</span></p>
+                <p>Let's get you registered! First, please select your field of study:</p>
+                <div class="quick-actions" style="margin-top: 15px;">
+                    ${fieldsHtml}
+                </div>
+            `);
+        }
+
+        function selectField(field) {
+            conversationState.userData.field = field;
+            conversationState.step = 1;
+            
+            addMessage(field, true);
+            
+            setTimeout(() => {
+                addMessage(`
+                    <p>Great! You've selected <span class="highlight">${field}</span>.</p>
+                    <p>Now, please provide your username (this will be your unique identifier):</p>
+                `);
+            }, 500);
+        }
+
+        function handleFlowResponse(message) {
+            if (conversationState.currentFlow === 'registration') {
+                handleRegistrationFlow(message);
+            }
+        }
+
+        function handleRegistrationFlow(message) {
+            const step = conversationState.step;
+            
+            switch(step) {
+                case 1: // Username
+                    if (systemData.registeredStudents[message]) {
+                        addMessage(`
+                            <p>❌ Username "${message}" is already taken. Please choose another username:</p>
+                        `);
+                        return;
+                    }
+                    conversationState.userData.username = message;
+                    conversationState.step = 2;
+                    addMessage(`
+                        <p>Username <span class="highlight">${message}</span> is available!</p>
+                        <p>Please provide your full name:</p>
+                    `);
+                    break;
+                    
+                case 2: // Name
+                    conversationState.userData.name = message;
+                    conversationState.step = 3;
+                    addMessage(`
+                        <p>Nice to meet you, <span class="highlight">${message}</span>!</p>
+                        <p>What's your current CGPA? (on a scale of 10):</p>
+                    `);
+                    break;
+                    
+                case 3: // CGPA
+                    const cgpa = parseFloat(message);
+                    if (isNaN(cgpa) || cgpa < 0 || cgpa > 10) {
+                        addMessage(`
+                            <p>❌ Please enter a valid CGPA between 0 and 10:</p>
+                        `);
+                        return;
+                    }
+                    conversationState.userData.cgpa = cgpa;
+                    conversationState.step = 4;
+                    addMessage(`
+                        <p>CGPA recorded: <span class="highlight">${cgpa}/10</span></p>
+                        <p>List your key skills (comma-separated):</p>
+                        <p><em>Example: Python, Java, Machine Learning, Communication</em></p>
+                    `);
+                    break;
+                    
+                case 4: // Skills
+                    const skills = message.split(',').map(skill => skill.trim()).filter(skill => skill);
+                    conversationState.userData.skills = skills;
+                    conversationState.step = 5;
+                    
+                    const locationActions = [
+                        "Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad", "Pune"
+                    ].map(city => 
+                        `<div class="quick-action" onclick="selectLocation('${city}')">${city}</div>`
+                    ).join('');
+                    
+                    addMessage(`
+                        <p>Skills recorded: <span class="highlight">${skills.join(', ')}</span></p>
+                        <p>What's your preferred location? (select one or type multiple cities separated by commas):</p>
+                        <div class="quick-actions" style="margin-top: 10px;">
+                            ${locationActions}
+                        </div>
+                    `);
+                    break;
+                    
+                case 5: // Location
+                    conversationState.userData.preferredLocations = message.split(',').map(loc => loc.trim());
+                    completeRegistration();
+                    break;
+            }
+        }
+
+        function selectLocation(location) {
+            addMessage(location, true);
+            conversationState.userData.preferredLocations = [location];
+            
+            setTimeout(() => {
+                completeRegistration();
+            }, 500);
+        }
+
+        function completeRegistration() {
+            const userData = conversationState.userData;
+            const studentId = `CAND_${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+            
+            // Register the student
+            systemData.registeredStudents[userData.username] = {
+                id: studentId,
+                ...userData,
+                registrationDate: new Date().toISOString(),
+                experienceMonths: Math.floor(Math.random() * 24)
+            };
+            
+            // Find best matching internship
+            const bestMatch = findBestMatch(userData);
+            
+            if (bestMatch) {
+                // Allocate internship
+                systemData.allocations[userData.username] = {
+                    student: userData,
+                    internship: bestMatch.company,
+                    matchScore: bestMatch.score,
+                    allocationDate: new Date().toISOString()
+                };
+                
+                // Update capacity
+                bestMatch.company.capacity--;
+            }
+            
+            addMessage(`
+                <p>🎉 <span class="highlight">Registration Successful!</span></p>
+                <div class="data-display">
+                    <strong>Student Profile Created:</strong><br>
+                    ID: ${studentId}<br>
+                    Name: ${userData.name}<br>
+                    Field: ${userData.field}<br>
+                    CGPA: ${userData.cgpa}/10<br>
+                    Skills: ${userData.skills.join(', ')}<br>
+                    Preferred Locations: ${userData.preferredLocations.join(', ')}
+                </div>
+                
+                ${bestMatch ? `
+                    <p>🎯 <span class="highlight">Automatic Allocation Successful!</span></p>
+                    <div class="data-display">
+                        <strong>Internship Allocated:</strong><br>
+                        Company: ${bestMatch.company.name}<br>
+                        Sector: ${bestMatch.company.sector}<br>
+                        Location: ${bestMatch.company.location}<br>
+                        Stipend: ₹${bestMatch.company.stipend.toLocaleString()}/month<br>
+                        Match Score: ${bestMatch.score}/100<br>
+                        Remaining Capacity: ${bestMatch.company.capacity}
+                    </div>
+                ` : `
+                    <p>⚠️ No suitable internship found at this time. You can check recommendations or try again later.</p>
+                `}
+                
+                <div class="quick-actions" style="margin-top: 15px;">
+                    <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">View Recommendations</div>
+                    <div class="quick-action" onclick="sendQuickMessage('Check my allocation')">View My Allocation</div>
+                </div>
+            `);
+            
+            // Reset conversation state
+            conversationState.currentFlow = null;
+            conversationState.userData = {};
+            conversationState.step = 0;
+        }
+
+        function findBestMatch(userData) {
+            let bestScore = 0;
+            let bestCompany = null;
+            
+            for (let company of systemData.companies) {
+                if (company.capacity <= 0) continue;
+                
+                let score = 0;
+                
+                // Field matching
+                if (company.sector.toLowerCase().includes(userData.field.toLowerCase()) || 
+                    userData.field.toLowerCase().includes(company.sector.toLowerCase())) {
+                    score += 30;
+                }
+                
+                // CGPA matching
+                if (userData.cgpa >= 8.0) score += 25;
+                else if (userData.cgpa >= 7.0) score += 20;
+                else if (userData.cgpa >= 6.0) score += 15;
+                
+                // Location matching
+                if (userData.preferredLocations.some(loc => 
+                    loc.toLowerCase().includes(company.location.toLowerCase()))) {
+                    score += 20;
+                }
+                
+                // Skill matching
+                const skillMatches = userData.skills.filter(skill => 
+                    company.skills.some(companySkill => 
+                        skill.toLowerCase().includes(companySkill.toLowerCase()) ||
+                        companySkill.toLowerCase().includes(skill.toLowerCase())
+                    )
+                ).length;
+                score += Math.min(skillMatches * 5, 25);
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCompany = company;
+                }
+            }
+            
+            return bestCompany ? { company: bestCompany, score: bestScore } : null;
+        }
+
+        function showRecommendations() {
+            const username = prompt("Enter your username to get personalized recommendations:");
+            
+            if (!username || !systemData.registeredStudents[username]) {
+                addMessage(`
+                    <p>❌ User "${username}" not found in our system.</p>
+                    <p>Please register first or check your username.</p>
+                    <div class="quick-actions" style="margin-top: 10px;">
+                        <div class="quick-action" onclick="sendQuickMessage('Register as student')">Register Now</div>
+                    </div>
+                `);
+                return;
+            }
+            
+            const student = systemData.registeredStudents[username];
+            const recommendations = generateRecommendations(student);
+            
+            if (recommendations.length === 0) {
+                addMessage(`
+                    <p>⚠️ No suitable internships available at the moment.</p>
+                    <p>Please check back later or consider broadening your preferences.</p>
+                `);
+                return;
+            }
+            
+            let recommendationHtml = `
+                <p>💡 <span class="highlight">Personalized Recommendations for ${student.name}</span></p>
+                <p>Based on your profile, here are the top matches:</p>
+            `;
+            
+            recommendations.forEach((rec, index) => {
+                recommendationHtml += `
+                    <div class="data-display" style="margin: 15px 0;">
+                        <strong>${index + 1}. ${rec.company.name} - ${rec.company.sector}</strong><br>
+                        📍 Location: ${rec.company.location}<br>
+                        💰 Stipend: ₹${rec.company.stipend.toLocaleString()}/month<br>
+                        🎯 Match Score: ${rec.score}/100<br>
+                        📊 Available Slots: ${rec.company.capacity}<br>
+                        🔧 Required Skills: ${rec.company.skills.join(', ')}<br>
+                        
+                        <div style="margin-top: 10px; font-size: 13px;">
+                            <strong>Why this matches:</strong><br>
+                            ${rec.reasons.join('<br>')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            addMessage(recommendationHtml);
+        }
+
+        function generateRecommendations(student) {
+            const recommendations = [];
+            
+            for (let company of systemData.companies) {
+                if (company.capacity <= 0) continue;
+                
+                let score = 0;
+                const reasons = [];
+                
+                // Field matching
+                if (company.sector.toLowerCase().includes(student.field.toLowerCase())) {
+                    score += 30;
+                    reasons.push(`✓ Perfect field match: ${student.field} → ${company.sector}`);
+                }
+                
+                // CGPA matching
+                if (student.cgpa >= 8.0) {
+                    score += 25;
+                    reasons.push(`✓ Excellent CGPA: ${student.cgpa}/10`);
+                } else if (student.cgpa >= 7.0) {
+                    score += 20;
+                    reasons.push(`✓ Good CGPA: ${student.cgpa}/10`);
+                }
+                
+                // Location matching
+                if (student.preferredLocations.some(loc => 
+                    loc.toLowerCase() === company.location.toLowerCase())) {
+                    score += 20;
+                    reasons.push(`✓ Location match: ${company.location}`);
+                }
+                
+                // Skill matching
+                const skillMatches = student.skills.filter(skill => 
+                    company.skills.some(companySkill => 
+                        skill.toLowerCase().includes(companySkill.toLowerCase())
+                    )
+                );
+                
+                if (skillMatches.length > 0) {
+                    score += skillMatches.length * 5;
+                    reasons.push(`✓ Skill match: ${skillMatches.join(', ')}`);
+                }
+                
+                if (score >= 40) {
+                    recommendations.push({
+                        company: company,
+                        score: score,
+                        reasons: reasons
+                    });
+                }
+            }
+            
+            return recommendations.sort((a, b) => b.score - a.score).slice(0, 3);
+        }
+
+        function checkAllocation() {
+            const username = prompt("Enter your username to check allocation:");
+            
+            if (!username || !systemData.allocations[username]) {
+                addMessage(`
+                    <p>❌ No allocation found for "${username}".</p>
+                    <p>Either the username doesn't exist or no internship has been allocated yet.</p>
+                    <div class="quick-actions" style="margin-top: 10px;">
+                        <div class="quick-action" onclick="sendQuickMessage('Register as student')">Register</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">Get Recommendations</div>
+                    </div>
+                `);
+                return;
+            }
+            
+            const allocation = systemData.allocations[username];
+            const student = allocation.student;
+            const internship = allocation.internship;
+            
+            addMessage(`
+                <p>📋 <span class="highlight">Your Internship Allocation</span></p>
+                <div class="data-display">
+                    <strong>Student Details:</strong><br>
+                    Name: ${student.name}<br>
+                    Field: ${student.field}<br>
+                    CGPA: ${student.cgpa}/10<br><br>
+                    
+                    <strong>Allocated Internship:</strong><br>
+                    Company: ${internship.name}<br>
+                    Sector: ${internship.sector}<br>
+                    Location: ${internship.location}<br>
+                    Stipend: ₹${internship.stipend.toLocaleString()}/month<br>
+                    Match Score: ${allocation.matchScore}/100<br>
+                    Allocation Date: ${new Date(allocation.allocationDate).toLocaleDateString()}<br><br>
+                    
+                    <strong>Status:</strong> ✅ Successfully Allocated
+                </div>
+                
+                <div class="quick-actions" style="margin-top: 15px;">
+                    <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">View Other Options</div>
+                    <div class="quick-action" onclick="sendQuickMessage('System insights')">System Statistics</div>
+                </div>
+            `);
+        }
+
+        function showSystemInsights() {
+            const totalStudents = Object.keys(systemData.registeredStudents).length;
+            const totalAllocations = Object.keys(systemData.allocations).length;
+            const totalCapacity = systemData.companies.reduce((sum, company) => sum + company.capacity, 0);
+            const averageStipend = systemData.companies.reduce((sum, company) => sum + company.stipend, 0) / systemData.companies.length;
+            
+            // Calculate field distribution
+            const fieldDistribution = {};
+            Object.values(systemData.registeredStudents).forEach(student => {
+                fieldDistribution[student.field] = (fieldDistribution[student.field] || 0) + 1;
+            });
+            
+            // Calculate company allocation stats
+            const companyStats = {};
+            Object.values(systemData.allocations).forEach(allocation => {
+                const companyName = allocation.internship.name;
+                companyStats[companyName] = (companyStats[companyName] || 0) + 1;
+            });
+            
+            let fieldStatsHtml = '';
+            Object.entries(fieldDistribution).slice(0, 5).forEach(([field, count]) => {
+                fieldStatsHtml += `${field}: ${count} students<br>`;
+            });
+            
+            let companyStatsHtml = '';
+            Object.entries(companyStats).slice(0, 3).forEach(([company, count]) => {
+                companyStatsHtml += `${company}: ${count} allocations<br>`;
+            });
+            
+            addMessage(`
+                <p>📊 <span class="highlight">System Analytics Dashboard</span></p>
+                <div class="data-display">
+                    <strong>Overall Statistics:</strong><br>
+                    👥 Registered Students: ${totalStudents}<br>
+                    ✅ Successful Allocations: ${totalAllocations}<br>
+                    📈 Allocation Rate: ${totalStudents > 0 ? Math.round((totalAllocations/totalStudents) * 100) : 0}%<br>
+                    🏢 Available Companies: ${systemData.companies.length}<br>
+                    📊 Total Capacity: ${totalCapacity}<br>
+                    💰 Average Stipend: ₹${Math.round(averageStipend).toLocaleString()}/month<br><br>
+                    
+                    <strong>Top Fields:</strong><br>
+                    ${fieldStatsHtml || 'No registrations yet'}<br>
+                    
+                    <strong>Most Popular Companies:</strong><br>
+                    ${companyStatsHtml || 'No allocations yet'}
+                </div>
+                
+                <div class="quick-actions" style="margin-top: 15px;">
+                    <div class="quick-action" onclick="showCompanyCapacity()">View Company Capacity</div>
+                    <div class="quick-action" onclick="showSkillDemand()">Skill Demand Analysis</div>
+                </div>
+            `);
+        }
+
+        function showCompanyCapacity() {
+            let capacityHtml = '';
+            systemData.companies.forEach(company => {
+                const allocated = systemData.companies.find(c => c.name === company.name).capacity;
+                const originalCapacity = allocated + Object.values(systemData.allocations)
+                    .filter(alloc => alloc.internship.name === company.name).length;
+                
+                capacityHtml += `
+                    <div style="margin: 8px 0; padding: 8px; background: #f0f0f0; border-radius: 5px;">
+                        <strong>${company.name}</strong> (${company.sector})<br>
+                        Available: ${company.capacity} | Location: ${company.location}<br>
+                        Stipend: ₹${company.stipend.toLocaleString()}/month
+                    </div>
+                `;
+            });
+            
+            addMessage(`
+                <p>🏢 <span class="highlight">Company Capacity Status</span></p>
+                ${capacityHtml}
+            `);
+        }
+
+        function showSkillDemand() {
+            const skillDemand = {};
+            systemData.companies.forEach(company => {
+                company.skills.forEach(skill => {
+                    skillDemand[skill] = (skillDemand[skill] || 0) + 1;
+                });
+            });
+            
+            const sortedSkills = Object.entries(skillDemand)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 10);
+            
+            let skillHtml = '';
+            sortedSkills.forEach(([skill, demand], index) => {
+                skillHtml += `
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span>${index + 1}. ${skill}</span>
+                        <span>${demand} companies</span>
+                    </div>
+                `;
+            });
+            
+            addMessage(`
+                <p>🎯 <span class="highlight">Most In-Demand Skills</span></p>
+                <div class="data-display">
+                    ${skillHtml}
+                </div>
+                <p><em>Focus on these skills to improve your matching chances!</em></p>
+            `);
+        }
+
+        function showSkillBasedRecommendations() {
+            const username = prompt("Enter your username for skill-based recommendations:");
+            
+            if (!username || !systemData.registeredStudents[username]) {
+                addMessage(`
+                    <p>❌ User "${username}" not found. Please register first.</p>
+                `);
+                return;
+            }
+            
+            const skillCategoriesHtml = Object.keys(systemData.skillCategories).map(category => 
+                `<div class="quick-action" onclick="getSkillRecommendations('${username}', '${category}')">${category}</div>`
+            ).join('');
+            
+            addMessage(`
+                <p>🎯 <span class="highlight">Skill-Based Recommendations</span></p>
+                <p>Select a skill category to focus on:</p>
+                <div class="quick-actions" style="margin-top: 15px;">
+                    ${skillCategoriesHtml}
+                    <div class="quick-action" onclick="getSkillRecommendations('${username}', 'all')">All Skills</div>
+                </div>
+            `);
+        }
+
+        function getSkillRecommendations(username, category) {
+            const student = systemData.registeredStudents[username];
+            const focusSkills = category === 'all' ? [] : systemData.skillCategories[category];
+            
+            let filteredCompanies = systemData.companies.filter(company => {
+                if (company.capacity <= 0) return false;
+                if (category === 'all') return true;
+                return company.skills.some(skill => focusSkills.includes(skill));
+            });
+            
+            if (filteredCompanies.length === 0) {
+                addMessage(`
+                    <p>⚠️ No companies found with available capacity in the ${category} category.</p>
+                `);
+                return;
+            }
+            
+            let recommendationsHtml = `
+                <p>🎯 <span class="highlight">${category} Focused Recommendations for ${student.name}</span></p>
+            `;
+            
+            filteredCompanies.slice(0, 3).forEach((company, index) => {
+                const matchingSkills = student.skills.filter(skill => 
+                    company.skills.some(companySkill => 
+                        skill.toLowerCase().includes(companySkill.toLowerCase())
+                    )
+                );
+                const missingSkills = company.skills.filter(skill => 
+                    !student.skills.some(studentSkill => 
+                        studentSkill.toLowerCase().includes(skill.toLowerCase())
+                    )
+                );
+                
+                recommendationsHtml += `
+                    <div class="data-display" style="margin: 15px 0;">
+                        <strong>${index + 1}. ${company.name} - ${company.sector}</strong><br>
+                        📍 ${company.location} | 💰 ₹${company.stipend.toLocaleString()}/month<br>
+                        📊 Available Slots: ${company.capacity}<br><br>
+                        
+                        <strong>Your Matching Skills:</strong> ${matchingSkills.join(', ') || 'None'}<br>
+                        <strong>Skills to Develop:</strong> ${missingSkills.join(', ')}<br>
+                        <strong>All Required:</strong> ${company.skills.join(', ')}
+                    </div>
+                `;
+            });
+            
+            addMessage(recommendationsHtml);
+        }
+
+        function showHelp() {
+            addMessage(`
+                <p>🤖 <span class="highlight">System Help & Commands</span></p>
+                <p>I can help you with the following:</p>
+                
+                <div class="data-display">
+                    <strong>🎓 Student Services:</strong><br>
+                    • Register as a new student<br>
+                    • Get personalized internship recommendations<br>
+                    • Check your allocation status<br>
+                    • View skill-based matching<br><br>
+                    
+                    <strong>📊 Analytics & Insights:</strong><br>
+                    • System statistics and performance<br>
+                    • Company capacity status<br>
+                    • Skill demand analysis<br>
+                    • Field-wise distribution<br><br>
+                    
+                    <strong>🔍 Smart Features:</strong><br>
+                    • ML-powered matching algorithm<br>
+                    • Real-time capacity tracking<br>
+                    • Diversity-focused allocation<br>
+                    • Multi-criteria scoring system
+                </div>
+                
+                <div class="quick-actions" style="margin-top: 15px;">
+                    <div class="quick-action" onclick="sendQuickMessage('Register as student')">Start Registration</div>
+                    <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">Get Recommendations</div>
+                    <div class="quick-action" onclick="sendQuickMessage('System insights')">View Analytics</div>
+                </div>
+            `);
+        }
+
+        function handleGeneralQuery(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+                addMessage(`
+                    <p>Hello! Welcome to the ML Internship Allocation System.</p>
+                    <p>I can help you register for internships, get recommendations, or check your allocation status.</p>
+                    
+                    <div class="quick-actions" style="margin-top: 15px;">
+                        <div class="quick-action" onclick="sendQuickMessage('Register as student')">Register</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">Recommendations</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Help')">Help</div>
+                    </div>
+                `);
+            } else if (lowerMessage.includes('company') || lowerMessage.includes('companies')) {
+                showCompanyCapacity();
+            } else if (lowerMessage.includes('field') || lowerMessage.includes('domain')) {
+                const fieldsHtml = systemData.fields.map(field => `• ${field}`).join('<br>');
+                addMessage(`
+                    <p>📚 <span class="highlight">Available Fields of Study:</span></p>
+                    <div class="data-display">
+                        ${fieldsHtml}
+                    </div>
+                    
+                    <div class="quick-actions" style="margin-top: 15px;">
+                        <div class="quick-action" onclick="sendQuickMessage('Register as student')">Register in a Field</div>
+                    </div>
+                `);
+            } else if (lowerMessage.includes('stipend') || lowerMessage.includes('salary')) {
+                const averageStipend = systemData.companies.reduce((sum, company) => sum + company.stipend, 0) / systemData.companies.length;
+                const maxStipend = Math.max(...systemData.companies.map(c => c.stipend));
+                const minStipend = Math.min(...systemData.companies.map(c => c.stipend));
+                
+                addMessage(`
+                    <p>💰 <span class="highlight">Stipend Information:</span></p>
+                    <div class="data-display">
+                        Average Stipend: ₹${Math.round(averageStipend).toLocaleString()}/month<br>
+                        Highest Stipend: ₹${maxStipend.toLocaleString()}/month<br>
+                        Lowest Stipend: ₹${minStipend.toLocaleString()}/month<br><br>
+                        
+                        <strong>Note:</strong> Stipends vary based on company, role, and your qualifications.
+                    </div>
+                `);
+            } else {
+                addMessage(`
+                    <p>I'm not sure how to help with that specific request. Here's what I can do:</p>
+                    
+                    <div class="quick-actions" style="margin-top: 15px;">
+                        <div class="quick-action" onclick="sendQuickMessage('Register as student')">Register Student</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Get recommendations')">Get Recommendations</div>
+                        <div class="quick-action" onclick="sendQuickMessage('Help')">Show Help</div>
+                        <div class="quick-action" onclick="sendQuickMessage('System insights')">System Stats</div>
+                    </div>
+                `);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Initialize chat on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some sample data for demonstration
+            systemData.registeredStudents['demo_user'] = {
+                id: 'CAND_DEMO123',
+                username: 'demo_user',
+                name: 'John Doe',
+                field: 'Engineering',
+                cgpa: 8.2,
+                skills: ['Python', 'Java', 'Machine Learning'],
+                preferredLocations: ['Mumbai', 'Bangalore'],
+                registrationDate: new Date().toISOString(),
+                experienceMonths: 12
+            };
+            
+            systemData.allocations['demo_user'] = {
+                student: systemData.registeredStudents['demo_user'],
+                internship: systemData.companies[0],
+                matchScore: 85,
+                allocationDate: new Date().toISOString()
+            };
+            
+            // Reduce capacity for demo
+            systemData.companies[0].capacity = 4;
+        });
+    </script>
+</body>
+</html>
